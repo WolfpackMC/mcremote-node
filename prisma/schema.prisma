@@ -12,8 +12,8 @@ model ApiKey {
   key       String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  account   Account  @relation(fields: [accountId], references: [id], name: "AccountToApiKey")
   accountId Int
+  account   Account  @relation("AccountToApiKey", fields: [accountId], references: [id])
 }
 
 model Account {
@@ -27,15 +27,16 @@ model Account {
 }
 
 model Endpoint {
-  id        Int        @id @default(autoincrement())
-  name      String
-  url       String
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
-  account   Account    @relation(fields: [accountId], references: [id])
-  accountId Int
-  gauges    Gauge[]
-  redstones Redstone[]
+  id         Int          @id @default(autoincrement())
+  name       String
+  url        String
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  accountId  Int
+  BigReactor BigReactor[]
+  account    Account      @relation(fields: [accountId], references: [id])
+  gauges     Gauge[]
+  redstones  Redstone[]
 }
 
 model Gauge {
@@ -44,8 +45,8 @@ model Gauge {
   value      Float
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  endpoint   Endpoint @relation(fields: [endpointId], references: [id])
   endpointId Int
+  endpoint   Endpoint @relation(fields: [endpointId], references: [id])
 }
 
 model Redstone {
@@ -54,6 +55,29 @@ model Redstone {
   state      Boolean
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  endpoint   Endpoint @relation(fields: [endpointId], references: [id])
   endpointId Int
+  endpoint   Endpoint @relation(fields: [endpointId], references: [id])
+}
+
+model BigReactor {
+  id                 Int      @id @default(autoincrement())
+  name               String
+  active             Boolean  @default(false)
+  ambientTemperature Float    @default(0)
+  apiVersion         String   @default("0.0.0")
+  capacity           Int      @default(0)
+  producedLastTick   Int      @default(0)
+  stored             Int      @default(0)
+  casingTemperature  Float    @default(0)
+  connected          Boolean  @default(false)
+  controlRodCount    Int      @default(0)
+  fuelTemperature    Float    @default(0)
+  stackTemperature   Float    @default(0)
+  fuelBurnedLastTick Float    @default(0)
+  fuelReactivity     Float    @default(0)
+  fuelWaste          Int      @default(0)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime
+  endpointId         Int
+  Endpoint           Endpoint @relation(fields: [endpointId], references: [id])
 }
