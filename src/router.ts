@@ -190,7 +190,7 @@ export const appRouter = t.router({
 
       const { data } = input
 
-      prisma.bigReactor.update({
+      await prisma.bigReactor.update({
         where: {
           id: input.id,
         },
