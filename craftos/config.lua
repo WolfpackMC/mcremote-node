@@ -1,5 +1,5 @@
 local config = {
-  
+
   -- The name of the endpoint. This is used to identify the endpoint in the
   -- network.
 
