@@ -20,6 +20,8 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
       throw new Error('Not authorized')
     }
 
+    ctx.res.setHeader('token', ctx.token)
+
     return next({
       ctx,
     })
@@ -32,6 +34,8 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
       if (!sessions) {
         throw new Error('Not authorized')
       }
+
+      ctx.res.setHeader('token', ctx.uuid)
 
       ctx.token = token
 
@@ -168,13 +172,19 @@ export const appRouter = t.router({
         },
       })
 
+      console.log(input)
+
       if (!reactor) {
+        console.log("Reactor not found")
         throw new Error('Reactor not found')
       }
 
-      const acc_id = await client.get(ctx.token)
+      console.log(ctx.req.headers.token)
+
+      const acc_id = await client.get(ctx.req.headers.token as string)
 
       if (reactor.Endpoint.accountId != parseInt(acc_id)) {
+        console.log("Not authorized")
         throw new Error('Not authorized')
       }
 
