@@ -25,7 +25,6 @@ local reactor = peripheral.wrap("bottom")
 
 local endpoint = {
   config = config,
-  insertion_value = 100,
   token = nil,
   headers = {
     ["Content-Type"] = "application/json",
@@ -79,12 +78,11 @@ endpoint.set_token()
 local function control_reactor(reactor_data)
   if (reactor_data.stored / reactor_data.capacity < 0.80) then
     print("Set control rod level to" .. endpoint.config.control_rod_level)
-    endpoint.insertion_value = endpoint.config.control_rod_level
+    reactor.setAllControlRodLevels(endpoint.config.control_rod_level)
   elseif (reactor_data.stored / reactor_data.capacity > 0.99) then
     print("Set control rod level to 100")
-    endpoint.insertion_value = 100
+    reactor.setAllControlRodLevels(100)
   end
-  reactor.setAllControlRodLevels(endpoint.insertion_value)
 end
 
 local function poll_reactor()
@@ -106,15 +104,16 @@ local function poll_reactor()
       fuelReactivity = reactor.fuelTank().fuelReactivity(),
       fuelWaste = reactor.fuelTank().waste(),
       totalFuel = reactor.fuelTank().totalReactant(),
-      insertionValue = reactor.getControlRodLevel(0),
+      insertionValue = endpoint.config.insertion_value
     }
   }
-  control_reactor(reactor_data.data)
   return reactor_data
 end
 
 local function main()
   while true do
+    local reactor_data = poll_reactor()
+    control_reactor(reactor_data.data)
     local res, err = http.post(endpoint.config.http_url .. "/updateBRReactor", textutils.serializeJSON(poll_reactor()),
       endpoint.headers)
     if err then

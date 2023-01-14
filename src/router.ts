@@ -194,6 +194,9 @@ export const appRouter = t.router({
 
       const { data } = input
 
+      console.log(`Total fuel: ${data.totalFuel}`)
+      console.log(`Insertion value: ${data.insertionValue}`)
+
       await prisma.bigReactor.update({
         where: {
           id: input.id,
@@ -215,7 +218,6 @@ export const appRouter = t.router({
           fuelWaste: data.fuelWaste,
           totalFuel: data.totalFuel,
           insertionValue: data.insertionValue,
-          updatedAt: new Date(),
         },
       })
 
