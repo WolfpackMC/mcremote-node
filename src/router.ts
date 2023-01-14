@@ -12,6 +12,8 @@ import { prisma, verifyKey } from './util'
 
 import { BigReactor } from '@prisma/client'
 
+import { pollReactorData } from './prometheus'
+
 const isAuthed = t.middleware(async ({ ctx, next }) => {
   if (ctx.token) {
     const sessions = await client.get(ctx.token)
@@ -151,6 +153,8 @@ export const appRouter = t.router({
           fuelBurnedLastTick: z.number(),
           fuelReactivity: z.number(),
           fuelWaste: z.number(),
+          totalFuel: z.number(),
+          insertionValue: z.number(),
         }),
       }),
     )
@@ -209,6 +213,8 @@ export const appRouter = t.router({
           fuelBurnedLastTick: data.fuelBurnedLastTick,
           fuelReactivity: data.fuelReactivity,
           fuelWaste: data.fuelWaste,
+          totalFuel: data.totalFuel,
+          insertionValue: data.insertionValue,
         },
       })
 

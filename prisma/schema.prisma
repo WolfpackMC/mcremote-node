@@ -1,5 +1,5 @@
 generator client {
-  provider = "prisma-client-js"
+  provider   = "prisma-client-js"
   engineType = "binary"
 }
 
@@ -80,5 +80,7 @@ model BigReactor {
   createdAt          DateTime @default(now())
   updatedAt          DateTime
   endpointId         Int
+  totalFuel          Int      @default(0)
+  insertionValue     Float    @default(0)
   Endpoint           Endpoint @relation(fields: [endpointId], references: [id])
 }

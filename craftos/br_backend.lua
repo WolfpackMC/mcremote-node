@@ -16,12 +16,16 @@ end
 
 config = concat(config, {
   interval = 0.1,
+  control_rod_level = 95
 })
 
 -- DO NOT EDIT BELOW THIS LINE
 
+local reactor = peripheral.wrap("bottom")
+
 local endpoint = {
   config = config,
+  insertion_value = 100,
   token = nil,
   headers = {
     ["Content-Type"] = "application/json",
@@ -72,17 +76,54 @@ end
 
 endpoint.set_token()
 
-local function main()
-  local res, err = http.get(endpoint.config.http_url .. "/getBRData?input=1", endpoint.headers)
-
-  if err then
-    print(err)
-    return
+local function control_reactor(reactor_data)
+  if (reactor_data.stored / reactor_data.capacity < 0.80) then
+    print("Set control rod level to" .. endpoint.config.control_rod_level)
+    endpoint.insertion_value = endpoint.config.control_rod_level
+  elseif (reactor_data.stored / reactor_data.capacity > 0.99) then
+    print("Set control rod level to 100")
+    endpoint.insertion_value = 100
   end
+  reactor.setAllControlRodLevels(endpoint.insertion_value)
+end
 
-  local data = res.readAll()
+local function poll_reactor()
+  local reactor_data = {
+    id = endpoint.config.endpoint_id,
+    data = {
+      active = reactor.active(),
+      ambientTemperature = reactor.ambientTemperature(),
+      apiVersion = reactor.apiVersion(),
+      capacity = reactor.battery().capacity(),
+      producedLastTick = reactor.battery().producedLastTick(),
+      stored = reactor.battery().stored(),
+      casingTemperature = reactor.casingTemperature(),
+      connected = reactor.connected(),
+      controlRodCount = reactor.controlRodCount(),
+      fuelTemperature = reactor.fuelTemperature(),
+      stackTemperature = reactor.stackTemperature(),
+      fuelBurnedLastTick = reactor.fuelTank().burnedLastTick(),
+      fuelReactivity = reactor.fuelTank().fuelReactivity(),
+      fuelWaste = reactor.fuelTank().waste(),
+      totalFuel = reactor.fuelTank().totalReactant(),
+      insertionValue = reactor.getControlRodLevel(0),
+    }
+  }
+  control_reactor(reactor_data.data)
+  return reactor_data
+end
 
-  print("It worked!")
+local function main()
+  while true do
+    local res, err = http.post(endpoint.config.http_url .. "/updateBRReactor", textutils.serializeJSON(poll_reactor()),
+      endpoint.headers)
+    if err then
+      print(err)
+      return
+    end
+    print(os.time())
+    sleep(0.5)
+  end
 end
 
 main()

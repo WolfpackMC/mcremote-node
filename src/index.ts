@@ -4,6 +4,11 @@ import express, { Application } from 'express'
 import 'colorts/lib/string'
 import * as dotenv from 'dotenv'
 
+import * as React from 'react'
+import * as ReactDOM from 'react-dom/client'
+
+import './prometheus'
+
 import { generateOpenApiDocument, OpenApiMeta } from 'trpc-openapi'
 import { Context, createContext } from './context'
 
@@ -20,6 +25,7 @@ import { createOpenApiExpressMiddleware } from 'trpc-openapi'
 import swaggerUi from 'swagger-ui-express'
 
 import { appRouter } from './router'
+import { pollReactorData } from './prometheus'
 
 dotenv.config()
 
@@ -50,6 +56,10 @@ app.use(
 app.use('/api-docs', swaggerUi.serve)
 
 app.get('/api-docs', swaggerUi.setup(openApiDocument))
+
+app.use('/metrics', async (req, res) => {
+  res.send(await pollReactorData())
+})
 
 app.on('error', err => {
   Log.error(err.toString())
