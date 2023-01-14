@@ -215,6 +215,7 @@ export const appRouter = t.router({
           fuelWaste: data.fuelWaste,
           totalFuel: data.totalFuel,
           insertionValue: data.insertionValue,
+          updatedAt: new Date(),
         },
       })
 
