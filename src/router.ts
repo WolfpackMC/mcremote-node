@@ -124,6 +124,28 @@ export const appRouter = t.router({
 
       return reactor
     }),
+  getBRState: t.procedure
+    .input(z.number())
+    .output(z.object({
+      active: z.boolean(),
+    }))
+    .query(async ({ ctx, input }) => {
+      const reactor = await prisma.bigReactor.findUnique({
+        where: {
+          id: input,
+        },
+
+        select: {
+          active: true,
+        },
+      })
+
+      if (!reactor) {
+        throw new Error('Reactor not found')
+      }
+
+      return reactor
+    }),
   updateBRReactor: protectedProcedure
     .meta({
       openapi: {
