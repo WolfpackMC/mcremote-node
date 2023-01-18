@@ -16,7 +16,7 @@ end
 
 config = concat(config, {
   interval = 0.1,
-  control_rod_level = 95
+  control_rod_level = 20
 })
 
 -- DO NOT EDIT BELOW THIS LINE
@@ -25,6 +25,7 @@ local reactor = peripheral.wrap("bottom")
 
 local endpoint = {
   config = config,
+  insertion_value = 100,
   token = nil,
   headers = {
     ["Content-Type"] = "application/json",
@@ -54,7 +55,8 @@ function endpoint.set_token()
   end
 
   print(endpoint)
-  local response, err = http.get(endpoint.config.http_url .. "/getBRData?input=1", endpoint.headers)
+  local response, err = http.get(endpoint.config.http_url .. "/getBRData?input=" .. endpoint.config.endpoint_id,
+    endpoint.headers)
 
   local res_headers = response.getResponseHeaders()
 
@@ -78,11 +80,12 @@ endpoint.set_token()
 local function control_reactor(reactor_data)
   if (reactor_data.stored / reactor_data.capacity < 0.80) then
     print("Set control rod level to" .. endpoint.config.control_rod_level)
-    reactor.setAllControlRodLevels(endpoint.config.control_rod_level)
+    endpoint.insertion_value = endpoint.config.control_rod_level
   elseif (reactor_data.stored / reactor_data.capacity > 0.99) then
     print("Set control rod level to 100")
-    reactor.setAllControlRodLevels(100)
+    endpoint.insertion_value = 100
   end
+  reactor.getControlRod(0).setLevel(endpoint.config.control_rod_level)
 end
 
 local function poll_reactor()
@@ -104,17 +107,27 @@ local function poll_reactor()
       fuelReactivity = reactor.fuelTank().fuelReactivity(),
       fuelWaste = reactor.fuelTank().waste(),
       totalFuel = reactor.fuelTank().totalReactant(),
-      insertionValue = endpoint.config.insertion_value
+      insertionValue = endpoint.insertion_value,
     }
   }
+  control_reactor(reactor_data.data)
   return reactor_data
 end
 
 local function main()
   while true do
+    local state_res, err = http.get(endpoint.config.http_url .. "/getBRState?input=1", endpoint.headers)
+    if err then
+      print(err)
+      return
+    end
+    local data_string = state_res.readAll()
+    print(data_string)
+    local data = textutils.unserializeJSON(data_string)
     local reactor_data = poll_reactor()
-    control_reactor(reactor_data.data)
-    local res, err = http.post(endpoint.config.http_url .. "/updateBRReactor", textutils.serializeJSON(poll_reactor()),
+    reactor_data.data.active = data.result.data.active
+    reactor.setActive(reactor_data.data.active)
+    local res, err = http.post(endpoint.config.http_url .. "/updateBRReactor", textutils.serializeJSON(reactor_data),
       endpoint.headers)
     if err then
       print(err)
