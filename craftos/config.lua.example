@@ -1,0 +1,15 @@
+-- Feel free to rename this to config.lua and edit it to your needs. This file
+-- is not tracked by git.
+
+local config = {
+
+  -- The name of the endpoint. This is used to identify the endpoint in the
+  -- network.
+
+  name = "endpoint",
+  api_key = "", -- example: "Jd1cn2YKUnaLWSALJrI+4IyhgBVDk4V3dg81DmlpJvA=",
+  http_url = "http://<host>:<port>/api/trpc",
+  endpoint_id = 1, -- usually starts with 1, but it's whatever the endpoint id is in the database
+}
+
+return config
