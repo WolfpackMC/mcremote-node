@@ -10,10 +10,6 @@ import { trpc as t } from './trpc'
 
 import { prisma, verifyKey } from './util'
 
-import { BigReactor } from '@prisma/client'
-
-import { pollReactorData } from './prometheus'
-
 const isAuthed = t.middleware(async ({ ctx, next }) => {
   if (ctx.token) {
     const sessions = await client.get(ctx.token)
@@ -126,9 +122,11 @@ export const appRouter = t.router({
     }),
   getBRState: t.procedure
     .input(z.number())
-    .output(z.object({
-      active: z.boolean(),
-    }))
+    .output(
+      z.object({
+        active: z.boolean(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const reactor = await prisma.bigReactor.findUnique({
         where: {
@@ -201,7 +199,7 @@ export const appRouter = t.router({
       console.log(input)
 
       if (!reactor) {
-        console.log("Reactor not found")
+        console.log('Reactor not found')
         throw new Error('Reactor not found')
       }
 
@@ -210,7 +208,7 @@ export const appRouter = t.router({
       const acc_id = await client.get(ctx.req.headers.token as string)
 
       if (reactor.Endpoint.accountId != parseInt(acc_id)) {
-        console.log("Not authorized")
+        console.log('Not authorized')
         throw new Error('Not authorized')
       }
 
@@ -253,8 +251,121 @@ export const appRouter = t.router({
         message: 'Updated',
       }
     }),
-  // Write a curl request to test this
-  // curl -X POST -H "Content-Type: application/json" -d '{"input":{"data":{"test":"test"}}}' http://localhost:3002/api/trpc
+  getIMState: t.procedure
+    .input(z.number())
+    .output(
+      z.object({
+        active: z.boolean(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const iMatrix = await prisma.inductionMatrix.findUnique({
+        where: {
+          id: input,
+        },
+
+        select: {
+          active: true,
+        },
+      })
+
+      if (!iMatrix) {
+        throw new Error('Induction Matrix not found')
+      }
+
+      return iMatrix
+    }),
+  updateIMatrix: protectedProcedure
+    .meta({
+      openapi: {
+        method: 'POST',
+        summary: 'Update Induction Matrix',
+        description: 'Update Induction Matrix',
+        path: '/api/trpc/updateIMatrix',
+        tags: ['im'],
+        protect: true,
+      },
+    })
+    .input(
+      z.object({
+        id: z.number(),
+        data: z.object({
+          active: z.boolean(),
+          energy: z.number(),
+          energyFilledPercentage: z.number(),
+          energyNeeded: z.number(),
+          installedCells: z.number(),
+          installedProviders: z.number(),
+          maxEnergy: z.number(),
+          transferCap: z.number(),
+          lastInput: z.number(),
+          lastOutput: z.number(),
+          length: z.number(),
+          width: z.number(),
+          height: z.number(),
+        }),
+      }),
+    )
+    .output(
+      z.object({
+        id: z.number(),
+        message: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const start_time = Date.now()
+
+      const iMatrix = await prisma.inductionMatrix.findUnique({
+        where: {
+          id: input.id,
+        },
+        include: {
+          endpoint: true,
+        },
+      })
+
+      if (!iMatrix) {
+        throw new Error('Induction Matrix not found')
+      }
+
+      const acc_id = await client.get(ctx.req.headers.token as string)
+
+      if (iMatrix.endpoint.accountId != parseInt(acc_id)) {
+        throw new Error('Not authorized')
+      }
+
+      const { data } = input
+
+      await prisma.inductionMatrix.update({
+        where: {
+          id: input.id,
+        },
+        data: {
+          active: data.active,
+          energy: data.energy,
+          energyFilledPercentage: data.energyFilledPercentage,
+          energyNeeded: data.energyNeeded,
+          installedCells: data.installedCells,
+          installedProviders: data.installedProviders,
+          maxEnergy: data.maxEnergy,
+          transferCap: data.transferCap,
+          lastInput: data.lastInput,
+          lastOutput: data.lastOutput,
+          length: data.length,
+          width: data.width,
+          height: data.height,
+          updatedAt: new Date(),
+        },
+      })
+
+      const end_time = Date.now()
+
+      Log.info(`Updated IMatrix ${input.id} in ${end_time - start_time}ms`)
+      return {
+        id: input.id,
+        message: 'Updated',
+      }
+    }),
   setRedstoneState: protectedProcedure
     .meta({
       openapi: {

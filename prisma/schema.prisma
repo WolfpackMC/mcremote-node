@@ -28,16 +28,17 @@ model Account {
 }
 
 model Endpoint {
-  id         Int          @id @default(autoincrement())
-  name       String
-  url        String
-  createdAt  DateTime     @default(now())
-  updatedAt  DateTime     @updatedAt
-  accountId  Int
-  BigReactor BigReactor[]
-  account    Account      @relation(fields: [accountId], references: [id])
-  gauges     Gauge[]
-  redstones  Redstone[]
+  id              Int               @id @default(autoincrement())
+  name            String
+  url             String
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  accountId       Int
+  BigReactor      BigReactor[]
+  account         Account           @relation(fields: [accountId], references: [id])
+  gauges          Gauge[]
+  redstones       Redstone[]
+  InductionMatrix InductionMatrix[]
 }
 
 model Gauge {
@@ -58,6 +59,28 @@ model Redstone {
   updatedAt  DateTime @updatedAt
   endpointId Int
   endpoint   Endpoint @relation(fields: [endpointId], references: [id])
+}
+
+model InductionMatrix {
+  id                     Int      @id @default(autoincrement())
+  name                   String
+  energy                 Float
+  energyFilledPercentage Float
+  energyNeeded           Float
+  installedCells         Int
+  installedProviders     Int
+  lastInput              Float
+  lastOutput             Float
+  maxEnergy              Float
+  transferCap            Float
+  active                 Boolean
+  length                 Int
+  width                  Int
+  height                 Int
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
+  endpointId             Int
+  endpoint               Endpoint @relation(fields: [endpointId], references: [id])
 }
 
 model BigReactor {

@@ -21,7 +21,7 @@ const registerReactorData = async () => {
   Log.info('Polling reactor data')
   const reactors = await prisma.bigReactor.findMany()
   reactor_length = reactors.length
-  
+
   for (const reactor of reactors) {
     const prefix = `reactor_${reactor.id}_`
     const ambientTemperature = new promClient.Histogram({
@@ -30,7 +30,10 @@ const registerReactorData = async () => {
       labelNames: ['reactor_id'],
       registers: [register],
     })
-    ambientTemperature.observe({ reactor_id: reactor.id }, reactor.ambientTemperature)
+    ambientTemperature.observe(
+      { reactor_id: reactor.id },
+      reactor.ambientTemperature,
+    )
 
     const energy_stored = new promClient.Histogram({
       name: `${prefix}energy_stored`,
@@ -46,7 +49,10 @@ const registerReactorData = async () => {
       labelNames: ['reactor_id'],
       registers: [register],
     })
-    energy_produced.observe({ reactor_id: reactor.id }, reactor.producedLastTick)
+    energy_produced.observe(
+      { reactor_id: reactor.id },
+      reactor.producedLastTick,
+    )
 
     const casing_temperature = new promClient.Histogram({
       name: `${prefix}casing_temperature`,
@@ -54,7 +60,10 @@ const registerReactorData = async () => {
       labelNames: ['reactor_id'],
       registers: [register],
     })
-    casing_temperature.observe({ reactor_id: reactor.id }, reactor.casingTemperature)
+    casing_temperature.observe(
+      { reactor_id: reactor.id },
+      reactor.casingTemperature,
+    )
 
     const fuel_temperature = new promClient.Histogram({
       name: `${prefix}fuel_temperature`,
@@ -62,7 +71,10 @@ const registerReactorData = async () => {
       labelNames: ['reactor_id'],
       registers: [register],
     })
-    fuel_temperature.observe({ reactor_id: reactor.id }, reactor.fuelTemperature)
+    fuel_temperature.observe(
+      { reactor_id: reactor.id },
+      reactor.fuelTemperature,
+    )
 
     const stack_temperature = new promClient.Histogram({
       name: `${prefix}stack_temperature`,
@@ -70,7 +82,10 @@ const registerReactorData = async () => {
       labelNames: ['reactor_id'],
       registers: [register],
     })
-    stack_temperature.observe({ reactor_id: reactor.id }, reactor.stackTemperature)
+    stack_temperature.observe(
+      { reactor_id: reactor.id },
+      reactor.stackTemperature,
+    )
 
     const fuel_burned_last_tick = new promClient.Histogram({
       name: `${prefix}fuel_burned_last_tick`,
@@ -78,7 +93,10 @@ const registerReactorData = async () => {
       labelNames: ['reactor_id'],
       registers: [register],
     })
-    fuel_burned_last_tick.observe({ reactor_id: reactor.id }, reactor.fuelBurnedLastTick)
+    fuel_burned_last_tick.observe(
+      { reactor_id: reactor.id },
+      reactor.fuelBurnedLastTick,
+    )
 
     const fuel_reactivity = new promClient.Histogram({
       name: `${prefix}fuel_reactivity`,
@@ -120,15 +138,42 @@ export const pollReactorData = async () => {
     await registerReactorData()
   }
   for (const reactor of reactors) {
-    reactorMetricData[reactor.id].ambientTemperature.observe({ reactor_id: reactor.id }, reactor.ambientTemperature)
-    reactorMetricData[reactor.id].energy_stored.observe({ reactor_id: reactor.id }, reactor.stored)
-    reactorMetricData[reactor.id].energy_produced.observe({ reactor_id: reactor.id }, reactor.producedLastTick)
-    reactorMetricData[reactor.id].casing_temperature.observe({ reactor_id: reactor.id }, reactor.casingTemperature)
-    reactorMetricData[reactor.id].fuel_temperature.observe({ reactor_id: reactor.id }, reactor.fuelTemperature)
-    reactorMetricData[reactor.id].stack_temperature.observe({ reactor_id: reactor.id }, reactor.stackTemperature)
-    reactorMetricData[reactor.id].fuel_burned_last_tick.observe({ reactor_id: reactor.id }, reactor.fuelBurnedLastTick)
-    reactorMetricData[reactor.id].fuel_reactivity.observe({ reactor_id: reactor.id }, reactor.fuelReactivity)
-    reactorMetricData[reactor.id].fuel_waste.observe({ reactor_id: reactor.id }, reactor.fuelWaste)
+    reactorMetricData[reactor.id].ambientTemperature.observe(
+      { reactor_id: reactor.id },
+      reactor.ambientTemperature,
+    )
+    reactorMetricData[reactor.id].energy_stored.observe(
+      { reactor_id: reactor.id },
+      reactor.stored,
+    )
+    reactorMetricData[reactor.id].energy_produced.observe(
+      { reactor_id: reactor.id },
+      reactor.producedLastTick,
+    )
+    reactorMetricData[reactor.id].casing_temperature.observe(
+      { reactor_id: reactor.id },
+      reactor.casingTemperature,
+    )
+    reactorMetricData[reactor.id].fuel_temperature.observe(
+      { reactor_id: reactor.id },
+      reactor.fuelTemperature,
+    )
+    reactorMetricData[reactor.id].stack_temperature.observe(
+      { reactor_id: reactor.id },
+      reactor.stackTemperature,
+    )
+    reactorMetricData[reactor.id].fuel_burned_last_tick.observe(
+      { reactor_id: reactor.id },
+      reactor.fuelBurnedLastTick,
+    )
+    reactorMetricData[reactor.id].fuel_reactivity.observe(
+      { reactor_id: reactor.id },
+      reactor.fuelReactivity,
+    )
+    reactorMetricData[reactor.id].fuel_waste.observe(
+      { reactor_id: reactor.id },
+      reactor.fuelWaste,
+    )
   }
 
   return await register.metrics()
