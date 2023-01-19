@@ -120,7 +120,7 @@ export const appRouter = t.router({
 
       return reactor
     }),
-  getBRState: t.procedure
+  getBRState: protectedProcedure
     .input(z.number())
     .output(
       z.object({
@@ -251,7 +251,7 @@ export const appRouter = t.router({
         message: 'Updated',
       }
     }),
-  getIMState: t.procedure
+  getIMState: protectedProcedure
     .input(z.number())
     .output(
       z.object({
