@@ -41,8 +41,6 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
         ctx,
       })
     }
-
-    throw new Error('Not authorized')
   }
 })
 
