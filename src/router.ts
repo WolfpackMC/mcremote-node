@@ -42,46 +42,6 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
       })
     }
   }
-
-  const key = ctx.req.headers.authorization
-
-  console.log(ctx.req.headers)
-
-  if (key) {
-    // Strip "Bearer" from the key
-    const apiKey = await verifyKey(key.toString().replace('Bearer ', ''))
-
-    console.log(key)
-
-    if (!apiKey) {
-      throw new Error('Not authorized')
-    }
-
-    const account = await prisma.account.findUnique({
-      where: {
-        id: apiKey.accountId,
-      },
-    })
-
-    if (!account) {
-      throw new Error('Not authorized')
-    }
-
-    ctx.res.setHeader('token', ctx.uuid)
-
-    await client.set(ctx.uuid, account.id)
-
-    console.log('ye')
-
-    ctx.token = ctx.uuid
-    ctx.account = account
-  } else {
-    throw new Error('Not authorized')
-  }
-
-  return next({
-    ctx,
-  })
 })
 
 export const protectedProcedure = t.procedure.use(isAuthed)
@@ -102,7 +62,59 @@ export const appRouter = t.router({
     .query(async ({ ctx }) => {
       return 'pong'
     }),
-  getBRData: protectedProcedure
+  token: t.procedure
+    .meta({
+      openapi: {
+        method: 'GET',
+        summary: 'Get Token',
+        description: 'Get Token',
+        path: '/api/trpc/token',
+        tags: ['token'],
+      },
+    })
+    .input(z.void())
+    .output(z.string())
+    .query(async ({ ctx }) => {
+
+      const key = ctx.req.headers.authorization
+
+      console.log(ctx.req.headers)
+
+      if (key) {
+        // Strip "Bearer" from the key
+        const apiKey = await verifyKey(key.toString().replace('Bearer ', ''))
+
+        console.log(key)
+
+        if (!apiKey) {
+          throw new Error('Not authorized')
+        }
+
+        const account = await prisma.account.findUnique({
+          where: {
+            id: apiKey.accountId,
+          },
+        })
+
+        if (!account) {
+          throw new Error('Not authorized')
+        }
+
+        ctx.res.setHeader('token', ctx.uuid)
+
+        await client.set(ctx.uuid, account.id)
+
+        console.log('ye')
+
+        ctx.token = ctx.uuid
+        ctx.account = account
+      } else {
+        throw new Error('Not authorized')
+      }
+      
+      return ctx.uuid
+    }),
+  getBRData: t.procedure
     .input(z.number())
     .query(async ({ ctx, input }) => {
       const reactor = await prisma.bigReactor.findUnique({
@@ -120,7 +132,7 @@ export const appRouter = t.router({
 
       return reactor
     }),
-  getBRState: protectedProcedure
+  getBRState: t.procedure
     .input(z.number())
     .output(
       z.object({
@@ -251,7 +263,7 @@ export const appRouter = t.router({
         message: 'Updated',
       }
     }),
-  getIMState: protectedProcedure
+  getIMState: t.procedure
     .input(z.number())
     .output(
       z.object({
@@ -266,6 +278,24 @@ export const appRouter = t.router({
 
         select: {
           active: true,
+        },
+      })
+
+      if (!iMatrix) {
+        throw new Error('Induction Matrix not found')
+      }
+
+      return iMatrix
+    }),
+  getIMData: t.procedure
+    .input(z.number())
+    .query(async ({ ctx, input }) => {
+      const iMatrix = await prisma.inductionMatrix.findUnique({
+        where: {
+          id: input,
+        },
+        include: {
+          endpoint: true,
         },
       })
 
