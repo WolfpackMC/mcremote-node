@@ -89,6 +89,7 @@ export const appRouter = t.router({
         console.log(key)
 
         if (!apiKey) {
+          Log.error('Invalid API Key')
           throw new Error('Not authorized')
         }
 
@@ -99,6 +100,7 @@ export const appRouter = t.router({
         })
 
         if (!account) {
+          Log.error('Invalid API Key')
           throw new Error('Not authorized')
         }
 
@@ -111,6 +113,7 @@ export const appRouter = t.router({
         ctx.token = ctx.uuid
         ctx.account = account
       } else {
+        Log.error('Invalid API Key')
         throw new Error('Not authorized')
       }
 
