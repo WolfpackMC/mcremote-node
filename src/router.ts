@@ -350,6 +350,8 @@ export const appRouter = t.router({
     .mutation(async ({ ctx, input }) => {
       const start_time = Date.now()
 
+      console.log(input)
+
       const iMatrix = await prisma.inductionMatrix.findUnique({
         where: {
           id: input.id,
@@ -360,12 +362,14 @@ export const appRouter = t.router({
       })
 
       if (!iMatrix) {
+        Log.error('Induction Matrix not found')
         throw new Error('Induction Matrix not found')
       }
 
       const acc_id = await client.get(ctx.req.headers.token as string)
 
       if (iMatrix.endpoint.accountId != parseInt(acc_id)) {
+        Log.error('Not authorized')
         throw new Error('Not authorized')
       }
 
