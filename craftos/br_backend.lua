@@ -16,12 +16,12 @@ end
 
 config = concat(config, {
   interval = 0.1,
-  control_rod_level = 20
+  control_rod_level = 95
 })
 
 -- DO NOT EDIT BELOW THIS LINE
 
-local reactor = peripheral.wrap("bottom")
+local reactor = peripheral.wrap("back")
 
 local endpoint = {
   config = config,
@@ -55,7 +55,7 @@ function endpoint.set_token()
   end
 
   print(endpoint)
-  local response, err = http.get(endpoint.config.http_url .. "/getBRData?input=" .. endpoint.config.endpoint_id,
+  local response, err = http.get(endpoint.config.http_url .. "/token",
     endpoint.headers)
 
   local res_headers = response.getResponseHeaders()
@@ -116,7 +116,7 @@ end
 
 local function main()
   while true do
-    local state_res, err = http.get(endpoint.config.http_url .. "/getBRState?input=1", endpoint.headers)
+    local state_res, err = http.get(endpoint.config.http_url .. "/getBRState?input=" .. endpoint.config.endpoint_id, endpoint.headers)
     if err then
       print(err)
       return

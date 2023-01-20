@@ -47,8 +47,10 @@ function endpoint.set_token()
   end
 
   print(endpoint)
-  local response, err = http.get(endpoint.config.http_url .. "/getIM?input=" .. endpoint.config.endpoint_id,
+  local response, err = http.get(endpoint.config.http_url .. "/token" .. endpoint.config.endpoint_id,
     endpoint.headers)
+    
+  if err then print(err) return end
 
   local res_headers = response.getResponseHeaders()
 
@@ -96,7 +98,7 @@ end
 local function main()
   while true do
     local matrix_data = poll_matrix()
-    local res, err = http.post(endpoint.config.http_url .. "/updateIM", textutils.serializeJSON(matrix_data),
+    local res, err = http.post(endpoint.config.http_url .. "/updateIMatrix", textutils.serializeJSON(matrix_data),
       endpoint.headers)
     if err then
       print(err)
@@ -106,3 +108,5 @@ local function main()
     sleep(config.interval)
   end
 end
+
+main()

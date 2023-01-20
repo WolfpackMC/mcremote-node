@@ -41,6 +41,8 @@ const isAuthed = t.middleware(async ({ ctx, next }) => {
         ctx,
       })
     }
+
+    throw new Error('Not authorized')
   }
 })
 
@@ -111,7 +113,7 @@ export const appRouter = t.router({
       } else {
         throw new Error('Not authorized')
       }
-      
+
       return ctx.uuid
     }),
   getBRData: t.procedure
